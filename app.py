@@ -1,38 +1,21 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, send_file
 import pandas as pd
-from bs4 import BeautifulSoup
 
-app = Flask(__name)
+app = Flask(__name__)
 
-def convert_html_to_excel(html_content):
-    # Parse HTML content using BeautifulSoup
-    soup = BeautifulSoup(html_content, 'html.parser')
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-    # Extract the table
-    table = soup.find('table')
-
-    if table:
-        # Convert the table to a DataFrame using pandas
-        df = pd.read_html(str(table))[0]
-
-        # Save the DataFrame to an Excel file
-        excel_file = 'table_to_excel.xlsx'
-        df.to_excel(excel_file, index=False)
-        return excel_file
-    else:
-        return None
-
-@app.route('/html_to_excel', methods=['POST'])
-def html_to_excel():
-    # Get HTML content from the POST request
-    html_content = request.data.decode('utf-8')
-
-    excel_file = convert_html_to_excel(html_content)
-
-    if excel_file:
-        return excel_file, 200
-    else:
-        return 'No table found in HTML content', 400
+@app.route('/convert', methods=['POST'])
+def convert():
+    html_input = request.form['html_input']
+    # Convert HTML to Excel using Pandas
+    # Replace this with your own conversion logic
+    df = pd.read_html(html_input)
+    df.to_excel('output.xlsx', index=False)
+    # Then, send the Excel file to the user
+    return send_file('output.xlsx', as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
